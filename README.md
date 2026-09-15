@@ -1,20 +1,18 @@
-# PennAir 2024 application
+# PennAir 2026 application
 
-Shape detection in OpenCV. The whole thing runs on one idea: the shapes are
-smooth and the backgrounds are not, so instead of looking for a colour I
-measure how rough each pixel's neighbourhood is and keep the flat parts.
+Shape detection using OpenCV, separating the shapes with the background
+with smoothness separation. Either smoothen the background and outline shapes,
+or comparing roughness between shapes and backgrounds.
 
 ## AI use
 
-I used Claude heavily while building this. The workflow was me deciding what
-to try and what the numbers meant, and the model doing the implementation and
-the measuring. It was good at running experiments quickly, for example
-sweeping a threshold across the whole video and reporting counts, and bad at
-knowing on its own which part of a pipeline was actually broken. Most of the
-useful steps below came from looking at an intermediate image and noticing
-something wrong with it, not from asking for a better algorithm.
-
-*(Raghav: edit this paragraph so it describes your side of it accurately.)*
+Claude was my tool of choice for writing out the functions and testing some of
+the different OpenCV ideas for isolating the shapes.. I decided what makes sense
+to test, and the model doing the implementation and rapid measurement. I could
+run experiments fast, but it often made mistakes on correctly smoothening or 
+finding the edges which needed some number tuning. A lot of my work revolved around
+studying common OpenCV functions based on the issue the video had and then 
+asking the AI for implementing alternatives.
 
 ## What is where
 
@@ -375,10 +373,3 @@ encoder of its own, so `cv2.VideoWriter` falls back to whatever it can find:
 So the scripts send frames to ffmpeg over a pipe instead of using
 `cv2.VideoWriter`. Inside WSL, OpenCV's `avc1` works fine, which is why the
 ROS recorder node does use `cv2.VideoWriter`.
-
-## Part 6
-
-Not done. The next thing I would add is tracking between frames, so each shape
-keeps an ID and can be predicted through a full occlusion rather than just a
-partial one. Right now each frame is judged entirely on its own, which is why
-two similar coloured shapes that overlap are indistinguishable from one shape.
