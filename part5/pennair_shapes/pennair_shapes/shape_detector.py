@@ -1,13 +1,12 @@
 """
-Node 2: take frames off the camera topic, detect shapes, publish the results.
+node 2: take frames off the camera topic, find the shapes, publish results.
 
-All the vision lives in detection.py, which is the same file the plain scripts
-use, so this node really is running the part 3 pipeline and not a copy that
-can drift out of sync. Everything here is just plumbing.
+All the vision is in detection.py, the same file the plain scripts use, so
+this node is running the part 3 pipeline rather than a copy of it that could
+drift. Everything here is just plumbing.
 
-Publishes:
   /shapes/image    the annotated picture, for rqt_image_view
-  /shapes/centers  the numbers, as a PoseArray of 3D centers in inches
+  /shapes/centers  the numbers, a PoseArray of 3D centers in inches
 """
 
 import rclpy
@@ -34,8 +33,8 @@ class ShapeDetector(Node):
         image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
         shapes = detection.find_shapes(image)
 
-        # keep the last depth when the circle is off screen, the surface is
-        # flat so it has not changed
+        # keep the old depth when the circle is off screen, the surface is
+        # flat so it has not moved
         new_depth = detection.find_depth(shapes)
         if new_depth is not None:
             self.depth = new_depth
@@ -48,7 +47,7 @@ class ShapeDetector(Node):
         self.image_pub.publish(annotated)
 
     def publish_centers(self, shapes, header):
-        """Send every center out as a 3D position in inches."""
+        """send every center out as a 3D position in inches"""
         poses = PoseArray()
         poses.header = header
 

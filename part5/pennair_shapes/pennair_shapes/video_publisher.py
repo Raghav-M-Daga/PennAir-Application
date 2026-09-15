@@ -1,10 +1,9 @@
 """
-Node 1: read the video file and publish its frames on /camera/image_raw.
+node 1: read the video and publish the frames on /camera/image_raw.
 
-This stands in for the camera. It reads one frame at a time and puts it on a
-topic at the video's own frame rate, and nothing downstream knows or cares
-that the frames came from a file instead of a real camera. Swapping in a real
-camera driver that publishes the same topic would change nothing else.
+This stands in for the camera. Nothing downstream knows the frames came from
+a file, so swapping in a real camera driver that publishes the same topic
+would not change anything else.
 """
 
 import cv2
@@ -27,8 +26,8 @@ class VideoPublisher(Node):
         self.bridge = CvBridge()
         self.publisher = self.create_publisher(Image, "/camera/image_raw", 10)
 
-        # publish on a timer at the video's own frame rate, so it comes out
-        # in real time instead of as fast as the disk can read
+        # publish on a timer at the video's own frame rate, otherwise it goes
+        # out as fast as the disk can read instead of in real time
         fps = self.cap.get(cv2.CAP_PROP_FPS) or 30.0
         self.create_timer(1.0 / fps, self.publish_frame)
         self.get_logger().info(f"publishing {path} at {fps:.1f} fps")
@@ -36,12 +35,12 @@ class VideoPublisher(Node):
     def publish_frame(self):
         ok, frame = self.cap.read()
         if not ok:
-            self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)   # loop the video
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)   # loop back to the start
             return
 
         message = self.bridge.cv2_to_imgmsg(frame, "bgr8")
-        # stamp it with the time and the frame it came from. anything that
-        # lines messages up later (rviz, tf) needs these to be filled in.
+        # stamp it with the time and which camera it came from, anything that
+        # lines messages up later needs these filled in
         message.header.stamp = self.get_clock().now().to_msg()
         message.header.frame_id = "camera"
         self.publisher.publish(message)

@@ -1,14 +1,13 @@
 """
-Node 3: save the annotated stream to a video file.
+node 3: save the annotated stream to a video file.
 
 Just a subscriber. It takes whatever shows up on /shapes/image and writes it
-to disk, which is how the ROS side produces an output video like the other
-parts do, except here the frames travelled over a topic instead of through a
-function call.
+out, so the ROS side produces an output video like the other parts do, except
+the frames got there over a topic instead of a function call.
 
-It is a separate node on purpose. The detector's job is finding shapes, not
-knowing about files, and anything else that wants to record a stream can
-reuse this node by pointing it at another topic.
+Separate node on purpose. The detector's job is finding shapes, not knowing
+about files, and anything else that wants recording can reuse this by
+pointing it at a different topic.
 """
 
 import cv2
@@ -27,8 +26,8 @@ class VideoRecorder(Node):
         self.fps = self.get_parameter("fps").value
 
         self.bridge = CvBridge()
-        self.writer = None      # opened on the first frame, once I know
-        self.frames = 0         # how big the pictures are
+        self.writer = None      # opened on the first frame, once I know how
+        self.frames = 0         # big the pictures are
         self.create_subscription(Image, "/shapes/image", self.on_image, 10)
         self.get_logger().info(f"recording /shapes/image to {self.path}")
 
